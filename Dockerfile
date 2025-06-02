@@ -38,14 +38,11 @@ RUN sed -ri \
     -e 's!^(\s*ErrorLog)\s+\S+!\1 /proc/self/fd/2!g' \
     /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf
 
-# Copy package files first for better caching
-COPY package*.json ./
-
-# Install JS dependencies first
-RUN npm install
-
-# Copy Laravel files into the container (before composer install)
+# Copy Laravel files into the container first
 COPY . .
+
+# Copy package files and install JS dependencies
+RUN npm install
 
 # Install PHP dependencies via Composer (skip scripts initially)
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --no-scripts
@@ -79,8 +76,17 @@ RUN php artisan key:generate --force
 # Run composer scripts now that artisan is available (with error handling)
 RUN composer run-script post-autoload-dump || echo "Warning: post-autoload-dump script failed, continuing..."
 
-# Build assets with Vite
-RUN npm run build
+# Build assets with Vite - ensure this happens and verify the output
+RUN npm run build && \
+    echo "Vite build completed. Checking manifest file..." && \
+    ls -la public/build/ && \
+    if [ ! -f "public/build/manifest.json" ]; then \
+        echo "ERROR: Vite manifest.json not found after build!"; \
+        exit 1; \
+    else \
+        echo "SUCCESS: Vite manifest.json found"; \
+        cat public/build/manifest.json; \
+    fi
 
 # Create necessary directories and set proper permissions
 RUN mkdir -p /var/www/html/storage/logs \
@@ -120,6 +126,13 @@ RUN echo '#!/bin/bash\n\
 set -e\n\
 \n\
 echo "Starting Laravel application..."\n\
+\n\
+# Check if Vite manifest exists\n\
+if [ ! -f "/var/www/html/public/build/manifest.json" ]; then\n\
+    echo "ERROR: Vite manifest not found! Attempting to rebuild..."\n\
+    cd /var/www/html\n\
+    npm run build || echo "Vite build failed during startup"\n\
+fi\n\
 \n\
 # Update APP_URL if provided via environment variable\n\
 if [ ! -z "$APP_URL" ]; then\n\

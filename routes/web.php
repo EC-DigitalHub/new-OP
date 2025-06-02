@@ -76,6 +76,10 @@ Route::get('/health', function () {
             'storage_writable' => is_writable(storage_path()),
             'cache_writable' => is_writable(storage_path('framework/cache')),
             'logs_writable' => is_writable(storage_path('logs')),
+            'vite_manifest_exists' => file_exists(public_path('build/manifest.json')),
+            'vite_manifest_path' => public_path('build/manifest.json'),
+            'build_directory_exists' => is_dir(public_path('build')),
+            'build_files' => is_dir(public_path('build')) ? scandir(public_path('build')) : 'Build directory not found',
         ]);
     } catch (\Exception $e) {
         return response()->json([
@@ -89,6 +93,52 @@ Route::get('/health', function () {
 // Simple test route
 Route::get('/test', function () {
     return 'Laravel is working!';
+});
+
+// Simple login page without Vite assets for debugging
+Route::get('/simple-login', function () {
+    return '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simple Login - Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 400px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .alert { padding: 10px; margin: 10px 0; border-radius: 4px; background: #d4edda; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Simple Login (Debug Mode)</h2>
+        <div class="alert">
+            <strong>Debug Info:</strong><br>
+            Laravel Version: ' . app()->version() . '<br>
+            PHP Version: ' . PHP_VERSION . '<br>
+            Environment: ' . config('app.env') . '<br>
+            Vite Manifest: ' . (file_exists(public_path('build/manifest.json')) ? 'Found' : 'Missing') . '
+        </div>
+        <form method="POST" action="/login">
+            ' . csrf_field() . '
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <p><a href="/health">Check System Health</a></p>
+    </div>
+</body>
+</html>';
 });
 
 // layout
