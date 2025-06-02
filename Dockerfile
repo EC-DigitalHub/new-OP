@@ -38,14 +38,11 @@ COPY package*.json ./
 # Install JS dependencies first
 RUN npm install
 
-# Copy composer files for better caching
-COPY composer.json composer.lock ./
-
-# Install PHP dependencies via Composer
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-
-# Copy Laravel files into the container
+# Copy Laravel files into the container (before composer install)
 COPY . .
+
+# Install PHP dependencies via Composer (skip scripts initially)
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --no-scripts
 
 # Create .env file with required settings (will be overridden by environment variables)
 RUN echo "APP_NAME=Laravel\n\
@@ -72,6 +69,9 @@ VITE_APP_NAME=\"\${APP_NAME}\"" > .env
 
 # Generate application key
 RUN php artisan key:generate --force
+
+# Run composer scripts now that artisan is available (with error handling)
+RUN composer run-script post-autoload-dump || echo "Warning: post-autoload-dump script failed, continuing..."
 
 # Build assets with Vite
 RUN npm run build

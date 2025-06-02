@@ -3,3 +3,16 @@ vendor
 npm-debug.log
 Dockerfile
 .dockerignore
+.git
+.gitignore
+.env
+.env.*
+README.md
+tests
+.phpunit.result.cache
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+public/build
+public/hot
