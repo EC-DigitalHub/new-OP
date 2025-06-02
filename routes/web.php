@@ -56,6 +56,40 @@ use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CityController;
 
+// Health check route for debugging
+Route::get('/health', function () {
+    try {
+        return response()->json([
+            'status' => 'OK',
+            'timestamp' => now(),
+            'app_name' => config('app.name'),
+            'app_env' => config('app.env'),
+            'app_debug' => config('app.debug'),
+            'app_url' => config('app.url'),
+            'php_version' => PHP_VERSION,
+            'laravel_version' => app()->version(),
+            'database' => [
+                'connection' => config('database.default'),
+                'host' => config('database.connections.mysql.host'),
+                'database' => config('database.connections.mysql.database'),
+            ],
+            'storage_writable' => is_writable(storage_path()),
+            'cache_writable' => is_writable(storage_path('framework/cache')),
+            'logs_writable' => is_writable(storage_path('logs')),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'ERROR',
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
+    }
+});
+
+// Simple test route
+Route::get('/test', function () {
+    return 'Laravel is working!';
+});
 
 // layout
 Route::get('/layouts/without-menu', [WithoutMenu::class, 'index'])->name('layouts-without-menu');
