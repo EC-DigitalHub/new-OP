@@ -3,7 +3,7 @@
 @section('title', 'Login Basic - Pages')
 
 @section('page-style')
-@if(file_exists(public_path('build/manifest.json')))
+@if(file_exists(public_path('build/manifest.json')) || file_exists(public_path('build/.vite/manifest.json')))
 @vite([
   'resources/assets/vendor/scss/pages/page-auth.scss'
 ])
@@ -132,7 +132,7 @@
       <!-- Register -->
       <div class="card px-sm-6 px-0">
         <div class="card-body">
-          @if(!file_exists(public_path('build/manifest.json')))
+          @if(!file_exists(public_path('build/manifest.json')) && !file_exists(public_path('build/.vite/manifest.json')))
           <div class="alert alert-warning">
             <strong>Debug Mode:</strong> Vite assets not found. Using fallback styles.
           </div>

@@ -1,6 +1,6 @@
 <!-- BEGIN: Vendor JS-->
 
-@if(file_exists(public_path('build/manifest.json')))
+@if(file_exists(public_path('build/manifest.json')) || file_exists(public_path('build/.vite/manifest.json')))
 @vite([
   'resources/assets/vendor/libs/jquery/jquery.js',
   'resources/assets/vendor/libs/popper/popper.js',
